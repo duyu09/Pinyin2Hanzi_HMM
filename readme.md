@@ -19,9 +19,17 @@
 | 这是什么啊？ | zhe4 shi4 shen2 me a ？ |
 | 我会尽量不打扰你复习。 | wo3 hui4 jin3 liang4 bu4 da3 rao3 ni3 fu4 xi2 。 |
 
+### 运行环境
+
+基于`Python 3.x`，版本不限，需要`numpy`、`pandas`、`hmmlearn`库，参考以下命令安装：
+```
+python3 -m pip install numpy pandas hmmlearn
+```
+硬件环境：假设训练语料数据包含 $2.65$ 万个不同的汉字，则推理至少需要 $6GB$ 左右的内存，训练至少需要 $8GB$ 左右的内存。
+
 ### 训练和推理方法
 
-修改`py2hz.py`的主函数代码以运行。我们已开源了基于多领域文本的预训练的模型权重`hmm_model.pkl.bz2`和`hmm_model_large.pkl.bz2`，可以直接使用。`hmm_model.pkl.bz2`规模稍小，可满足日常汉语的转换需求，其解压缩后约为800MB左右；`hmm_model_large.pkl.bz2`覆盖了几乎所有汉字的读音，并在规模更大的语料库上进行训练，其解压缩后约为4.5GB左右。
+修改`py2hz.py`的主函数代码以运行。我们已开源了基于多领域文本的预训练的模型权重`hmm_model.pkl.bz2`和`hmm_model_large.pkl.bz2`，可以直接使用。`hmm_model.pkl.bz2`规模稍小，可满足日常汉语的转换需求，其解压缩后约为 $800MB$ 左右；`hmm_model_large.pkl.bz2`覆盖了几乎所有汉字的读音，并在规模更大的语料库上进行训练，其解压缩后约为 $4.5GB$ 左右。
 
 若需自行训练则取消train函数的注释，并修改函数参数。训练完成后模型将会被压缩保存，原因是模型中存在非常稀疏的大矩阵，适合压缩存储。
 
@@ -36,7 +44,7 @@ if __name__ == '__main__':
 
 ### 预训练模型效果
 
-下表展示了预训练模型`hmm_model.pkl.bz2`的使用效果。
+下表展示了预训练模型`hmm_model_large.pkl.bz2`的使用效果。
 
 | 输入 | 输出 |
 | ----- | ----- |
