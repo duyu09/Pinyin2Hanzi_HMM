@@ -1,7 +1,7 @@
 # _*_ coding:utf-8 _*_
 """
-@Version  : 1.0.0
-@Time     : 2024年12月27日
+@Version  : 1.1.0
+@Time     : 2024年12月28日
 @Author   : DuYu (@duyu09, 202103180009@stu.qlu.edu.cn)
 @File     : py2hz.py
 @Describe : 基于隐马尔可夫模型(HMM)的拼音转汉字程序。
@@ -66,6 +66,8 @@ def train_hmm(sentences, pinyins, hanzi2id, pinyin2id):
         pinyin_seq = [pinyin2id[p] for p in pinyin.split()]
 
         # 初始状态概率
+        if len(hanzi_seq) == 0:
+            continue
         start_prob[hanzi_seq[0]] += 1
 
         # 转移概率
@@ -140,5 +142,5 @@ def pred(model_path='hmm_model.pkl.bz2', pinyin_str='ce4 shi4'):
     print('预测结果：', result)
 
 if __name__ == '__main__':
-    # train(dataset_path='train.csv', model_path='hmm_model.pkl.bz2')
+    # train(dataset_path='train_o.csv', model_path='hmm_model.pkl.bz2')
     pred(model_path='hmm_model.pkl.bz2', pinyin_str='hong2 yan2 bo2 ming4')
