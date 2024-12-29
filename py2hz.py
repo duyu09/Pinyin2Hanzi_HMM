@@ -1,7 +1,7 @@
 # _*_ coding:utf-8 _*_
 """
-@Version  : 1.1.0
-@Time     : 2024年12月28日
+@Version  : 1.2.0
+@Time     : 2024年12月29日
 @Author   : DuYu (@duyu09, 202103180009@stu.qlu.edu.cn)
 @File     : py2hz.py
 @Describe : 基于隐马尔可夫模型(HMM)的拼音转汉字程序。
@@ -92,36 +92,28 @@ def train_hmm(sentences, pinyins, hanzi2id, pinyin2id):
     zero_emit_rows = (emit_sums == 0).flatten()
     emit_prob[zero_emit_rows, :] = 1.0 / n_observations  # 均匀填充
     emit_prob /= emit_prob.sum(axis=1, keepdims=True)
-
+    
     model.startprob_ = start_prob
     model.transmat_ = trans_prob
     model.emissionprob_ = emit_prob
-
     return model
 
 # 4. 保存和加载模型
-def save_model(model, filepath):
-    with bz2.BZ2File(filepath, 'wb') as f:
-        pickle.dump(model, f)
+def save_model(model, filepath, mode='compress'):  # mode='normal'意味着不使用压缩
+    if mode == 'normal':
+        with open(filepath, 'wb') as f:
+            pickle.dump(model, f)
+    else:
+        with bz2.BZ2File(filepath, 'wb') as f:
+            pickle.dump(model, f)
 
-def load_model(filepath):
-    with bz2.BZ2File(filepath, 'rb') as f:
-        return pickle.load(f)
-
-def predict(model, pinyin_seq, pinyin2id, id2hanzi):
-    obs_seq = np.zeros((len(pinyin_seq), len(pinyin2id)))  # 转换观测序列为 one-hot 格式
-
-    for t, p in enumerate(pinyin_seq):
-        if p in pinyin2id:
-            obs_seq[t, pinyin2id[p]] = 1
-        else:
-            obs_seq[t, 0] = 1  # 未知拼音默认处理
-
-    # 解码预测
-    model.n_trials = 3  # 运行3次
-    log_prob, state_seq = model.decode(obs_seq, algorithm='viterbi')
-    result = ''.join([id2hanzi[s] for s in state_seq])
-    return result
+def load_model(filepath, mode='compress'):   # mode='normal'意味着不使用压缩
+    if mode == 'normal':
+        with open(filepath, 'rb') as f:
+            return pickle.load(f)
+    else:
+        with bz2.BZ2File(filepath, 'rb') as f:
+            return pickle.load(f)
 
     
 def train(dataset_path='train.csv', model_path='hmm_model.pkl.bz2'):
@@ -135,12 +127,23 @@ def train(dataset_path='train.csv', model_path='hmm_model.pkl.bz2'):
     save_model(model, model_path)  # 保存模型
     
     
-def pred(model_path='hmm_model.pkl.bz2', pinyin_str='ce4 shi4'):
-    model = load_model(model_path)  # 加载模型
+def pred(model_path='hmm_model.pkl.bz2', pinyin_str='ce4 shi4', n_trials=3):
+    model = load_model(model_path)
     pinyin_list = pinyin_str.split()
-    result = predict(model, pinyin_list, model.pinyin2id, model.id2hanzi)
+    pinyin2id, id2hanzi = model.pinyin2id, model.id2hanzi
+    obs_seq = np.zeros((len(pinyin_list), len(pinyin2id)))  # 转换观测序列为 one-hot 格式
+    for t, p in enumerate(pinyin_list):
+        if p in pinyin2id:
+            obs_seq[t, pinyin2id[p]] = 1
+        else:
+            obs_seq[t, 0] = 1  # 未知拼音默认处理
+
+    # 解码预测
+    model.n_trials = n_trials
+    log_prob, state_seq = model.decode(obs_seq, algorithm=model.algorithm)
+    result = ''.join([id2hanzi[s] for s in state_seq])
     print('预测结果：', result)
 
 if __name__ == '__main__':
-    # train(dataset_path='train_o.csv', model_path='hmm_model.pkl.bz2')
-    pred(model_path='hmm_model.pkl.bz2', pinyin_str='hong2 yan2 bo2 ming4')
+    # train(dataset_path='train.csv', model_path='hmm_model_large.pkl.bz2')
+    pred(model_path='hmm_model_large.pkl.bz2', pinyin_str='hong2 yan2 bo2 ming4')  # 预测结果：红颜薄命
